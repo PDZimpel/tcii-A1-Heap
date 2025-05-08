@@ -39,6 +39,46 @@ Allocator::initialize(uint size)
   _instance->freeBlocks = head;
 }
 
+
+void
+Allocator::fill_block(BlockInfo *h)
+{
+  //removing h from free blocks array
+  h->next->prev = h->prev;
+  h->prev->next = h->next;
+
+  h->flag = true;
+  auto footer = _instance->get_footer(h);
+
+  footer->flag = true;
+  footer->prev = h;
+}
+
+BlockInfo*
+Allocator::split_block(BlockInfo *h, uint size_required)
+{
+
+  auto block_size = size_required - 2*sizeof(BlockInfo);
+  
+  h->size -= size_required;
+  auto f = _instance->get_footer(h); // f is now the new footer of the splitten block h
+  f->flag = false;
+  f->prev = h;
+  
+  auto new_header = reinterpret_cast<BlockInfo*>(
+      reinterpret_cast<char*>(f) + sizeof(BlockInfo) //calculate the new header position from the footer of the block fom the left
+  );
+
+  new_header->flag = true;
+  new_header->size = block_size;
+
+  f = _instance->get_footer(new_header);
+  f->prev = new_header;
+  f->flag = true;
+  
+  return reinterpret_cast<BlockInfo*>(new_header + 1); // ==> new_header + sizeof(BlockInfo) ...
+}
+
 BlockInfo*
 Allocator::get_header(BlockInfo* f)
 {
