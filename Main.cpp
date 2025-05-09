@@ -41,12 +41,24 @@ allocatorTest()
 
   Allocator::initialize(sizeof(int)*10);
 
-  std:: cout << "Test 2: Fill function\nTests if we can allocate an entire block with the same size" << std::endl;
+  std:: cout << "Test 2: Fill function\nTests if we can allocate an entire block with the same size and wheter bad_alloc is thrown if tryied to insert new value" << std::endl;
 
   Allocator::printMemoryMap();
   auto d = Allocator::allocate<int>(10);
   std::cout << "\nOP: inserted block of size 40 into the heap" << std::endl;
   Allocator::printMemoryMap();
+
+  std::cout << "\nOP: inserted block of size 5 into the heap" << std::endl;
+  try
+  {
+    auto aa = Allocator::allocate<char>(5);
+  }
+  catch(const std::bad_alloc& e)
+  {
+    std::cerr << e.what() << '\n';
+    std::cout << "exception correctly thrown\n" << std::endl;
+  }
+  
 
   std::cout << "End of Test 2. =====" << std::endl;
   Allocator::exit();
